@@ -104,7 +104,7 @@ const getServerResponsiveStyle = (
     const cssString = Object.entries(parsed.initial ?? {})
       .map(
         ([subKey, subValue]) =>
-          `${camelToKebab(subKey)}: ${convertValue(subValue)};`
+          `${camelToKebab(subKey)}: ${convertValue(subValue)} !important;`
       )
       .join('\n');
 
