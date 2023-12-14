@@ -15274,12 +15274,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"rn-responsive-stylesheet-example-next@workspace:examples/next":
-  version: 0.0.0-use.local
-  resolution: "rn-responsive-stylesheet-example-next@workspace:examples/next"
-  languageName: unknown
-  linkType: soft
-
 "rn-responsive-stylesheet@workspace:.":
   version: 0.0.0-use.local
   resolution: "rn-responsive-stylesheet@workspace:."

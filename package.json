@@ -1,6 +1,6 @@
 {
   "name": "rn-responsive-stylesheet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Cross-platform styling for react-native and react-native-web",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
