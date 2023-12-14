@@ -41,16 +41,16 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
       [theme, mounted]
     );
 
-    const cssClass = parsedStyles
-      ? `responsive-${generateHash(JSON.stringify(parsedStyles))}`
-      : undefined;
-
     const styles = useMemo(() => {
       const entries = Object.entries(parsedStyles);
 
       return entries.reduce<ReactNativeStyleSheet<S>>((acc, cur) => {
         const key = cur[0];
         const value = cur[1] as StyleSheet[number];
+
+        const cssClass = parsedStyles
+          ? `responsive-${generateHash(JSON.stringify({ parsedStyles, key }))}`
+          : undefined;
 
         if (typeof value === 'function') {
           return deepMerge(acc, {
@@ -87,7 +87,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
           }
         }
       }, {} as ReactNativeStyleSheet<S>);
-    }, [breakpoints, parsedStyles, width, mounted, cssClass]);
+    }, [breakpoints, parsedStyles, width, mounted]);
 
     return styles;
   };
