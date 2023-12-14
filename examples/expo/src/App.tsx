@@ -1,18 +1,12 @@
 import * as React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { View, Text } from 'react-native';
 
-import { multiply } from 'rn-responsive-stylesheet';
+import { StyleSheet } from 'rn-responsive-stylesheet';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
-
-  React.useEffect(() => {
-    multiply(4, 7).then(setResult);
-  }, []);
-
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Works</Text>
     </View>
   );
 }
