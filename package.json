@@ -26,7 +26,8 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace rn-responsive-stylesheet-example",
+    "expo": "yarn workspace rn-responsive-stylesheet-example-expo",
+    "next": "yarn workspace rn-responsive-stylesheet-example-next",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
