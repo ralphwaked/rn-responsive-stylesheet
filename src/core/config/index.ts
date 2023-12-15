@@ -79,7 +79,7 @@ export const StyleProvider = ({
 
     return {
       isDark: colorScheme === 'dark',
-      ...(config as Config),
+      ...(config as any),
     };
   }, [colorScheme, config]);
 

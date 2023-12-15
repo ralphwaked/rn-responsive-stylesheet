@@ -127,7 +127,8 @@ const getServerResponsiveStyle = (
   }
 
   for (const query of Object.keys(parsed.queries)) {
-    const queryValue = parsed.queries[query as keyof typeof parsed.queries];
+    // @ts-ignore
+    const queryValue = parsed.queries[query as keyof Config['breakpoints']];
 
     const cssString = Object.entries(queryValue ?? {})
       .map(
@@ -174,7 +175,8 @@ const getResponsiveStyle = (
           breakpoints[b as keyof Config['breakpoints']]
       )
       .reduce((subAcc, subCur) => {
-        const subValue = parsed.queries[subCur as keyof typeof parsed.queries];
+        // @ts-ignore
+        const subValue = parsed.queries[subCur as keyof Config['breakpoints']];
 
         // @ts-ignore
         if (breakpoints[subCur as keyof Config['breakpoints']] <= width) {
@@ -213,7 +215,7 @@ const extractValueFromVar = (value: string) => {
   return match ? match[1] : null;
 };
 
-export const parseStyleValues = <T>(
+export const parseStyleValues = <T extends StyleSheet[number]>(
   style: T,
   // @ts-ignore
   breakpoints: Config['breakpoints'],
@@ -275,7 +277,9 @@ export const parseStyleValues = <T>(
               return {
                 ...(subAcc ?? {}),
                 [subCur]: {
-                  ...((subAcc[subCur as keyof typeof subAcc] as {}) ?? {}),
+                  // @ts-ignore
+                  ...((subAcc[subCur as keyof Config['breakpoints']] as {}) ??
+                    {}),
                   [cur]: {
                     ...((parsed.queries[
                       // @ts-ignore
@@ -283,7 +287,7 @@ export const parseStyleValues = <T>(
                     ] as {}) ?? {}),
                   },
                 },
-              };
+              } as any;
             },
             {} as ParsedStyleValues<T>['queries']
           ),
@@ -330,7 +334,7 @@ export const parseStyleValues = <T>(
               ] as {}) ?? {}),
               [cur]: fixColorValue(subValue),
             },
-          };
+          } as any;
         }
       }
 
