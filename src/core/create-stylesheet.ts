@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 
 import { deepMerge } from '../utils/deepmerge';
 
-import { useConfig, type Breakpoints } from '../config';
+import { useConfig, type Config } from './config';
 import type {
   ExtendedStyleSheet,
   ReactNativeStyleSheet,
@@ -27,18 +27,18 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
       setMounted(true);
     }, []);
 
-    const { theme, breakpoints } = useConfig();
+    const { isDark, theme, breakpoints, colorVars } = useConfig();
 
-    const { width } = useDimensionsWithEnable({
+    const { width, height } = useDimensionsWithEnable({
       enable: Platform.OS !== 'web' || (Platform.OS === 'web' && mounted),
     });
 
     const parsedStyles = useMemo(
       () =>
         typeof stylesheet === 'function'
-          ? stylesheet(theme, units(mounted))
+          ? stylesheet(theme, units(mounted, { width, height }))
           : stylesheet,
-      [theme, mounted]
+      [theme, mounted, width, height]
     );
 
     const styles = useMemo(() => {
@@ -58,7 +58,10 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
               apply: (target, thisArg, argArray) => {
                 const parsed = parseStyleValues(
                   target.apply(thisArg, argArray),
-                  breakpoints
+                  breakpoints,
+                  colorVars,
+                  mounted,
+                  isDark
                 );
 
                 if (Platform.OS !== 'web' || mounted) {
@@ -74,7 +77,13 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
             }),
           }) as unknown as ReactNativeStyleSheet<S>;
         } else {
-          const parsed = parseStyleValues(value, breakpoints);
+          const parsed = parseStyleValues(
+            value,
+            breakpoints,
+            colorVars,
+            mounted,
+            isDark
+          );
 
           if (Platform.OS !== 'web' || mounted) {
             return deepMerge(acc, {
@@ -87,7 +96,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
           }
         }
       }, {} as ReactNativeStyleSheet<S>);
-    }, [breakpoints, parsedStyles, width, mounted]);
+    }, [breakpoints, parsedStyles, width, colorVars, mounted, isDark]);
 
     return styles;
   };
@@ -96,7 +105,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
 const getServerResponsiveStyle = (
   parsed: ParsedStyleValues<StyleValues>,
   cssClass: string | undefined,
-  breakpoints: Breakpoints
+  breakpoints: Config['breakpoints']
 ) => {
   const classSelector = `.${cssClass}`;
 
@@ -128,9 +137,11 @@ const getServerResponsiveStyle = (
 
     const rule = `${classSelector}{${cssString}}`;
 
-    const cssRuleWithMediaQuery = breakpoints[query as keyof Breakpoints]
+    const cssRuleWithMediaQuery = breakpoints[
+      query as keyof Config['breakpoints']
+    ]
       ? `@media only screen and (min-width: ${
-          breakpoints[query as keyof Breakpoints]
+          breakpoints[query as keyof Config['breakpoints']]
         }px) { ${rule} }`
       : undefined;
 
@@ -145,7 +156,7 @@ const getServerResponsiveStyle = (
 
 const getResponsiveStyle = (
   parsed: ParsedStyleValues<StyleValues>,
-  breakpoints: Breakpoints,
+  breakpoints: Config['breakpoints'],
   width: number
 ) => {
   return deepMerge(
@@ -153,13 +164,13 @@ const getResponsiveStyle = (
     Object.keys(parsed.queries)
       .sort(
         (a, b) =>
-          breakpoints[a as keyof Breakpoints] -
-          breakpoints[b as keyof Breakpoints]
+          breakpoints[a as keyof Config['breakpoints']] -
+          breakpoints[b as keyof Config['breakpoints']]
       )
       .reduce((subAcc, subCur) => {
         const subValue = parsed.queries[subCur as keyof typeof parsed.queries];
 
-        if (breakpoints[subCur as keyof Breakpoints] <= width) {
+        if (breakpoints[subCur as keyof Config['breakpoints']] <= width) {
           return deepMerge(subAcc, subValue ?? {});
         }
 
@@ -184,14 +195,43 @@ type ParsedStyleValues<T> = {
   initial: T;
 } & {
   queries: {
-    [Breakpoint in keyof Breakpoints]?: T;
+    [Breakpoint in keyof Config['breakpoints']]?: T;
   };
+};
+
+const extractValueFromVar = (value: string) => {
+  const match = /var\(\s*--([^)\s]+)\s*\)/.exec(value);
+
+  return match ? match[1] : null;
 };
 
 export const parseStyleValues = <T>(
   style: T,
-  breakpoints: Breakpoints
+  breakpoints: Config['breakpoints'],
+  vars: Config['colorVars'],
+  mounted: boolean,
+  isDark?: boolean
 ): ParsedStyleValues<T> => {
+  const fixColorValue = (value: any) => {
+    if (typeof value === 'string' && value.startsWith('var(--')) {
+      if (mounted) {
+        const val = extractValueFromVar(value);
+
+        const colorVar = vars[val as keyof Config['colorVars']];
+
+        if (typeof colorVar === 'object') {
+          return isDark ? colorVar.dark : colorVar.light;
+        } else {
+          return colorVar;
+        }
+      } else {
+        return value;
+      }
+    }
+
+    return value;
+  };
+
   return Object.keys(style ?? {}).reduce<ParsedStyleValues<T>>(
     (acc, cur) => {
       const value = style[cur as keyof typeof style];
@@ -201,7 +241,7 @@ export const parseStyleValues = <T>(
       }
 
       if (typeof value !== 'object' || isPlatformColor(value)) {
-        acc.initial = { ...acc.initial, [cur]: value };
+        acc.initial = { ...acc.initial, [cur]: fixColorValue(value) };
 
         return acc;
       }
@@ -209,7 +249,10 @@ export const parseStyleValues = <T>(
       if (cur === 'shadowOffset' || cur === 'textShadowOffset') {
         const parsed = parseStyleValues(
           value,
-          breakpoints
+          breakpoints,
+          vars,
+          mounted,
+          isDark
         ) as ParsedStyleValues<T>;
 
         return deepMerge(acc, {
@@ -223,8 +266,9 @@ export const parseStyleValues = <T>(
                 [subCur]: {
                   ...((subAcc[subCur as keyof typeof subAcc] as {}) ?? {}),
                   [cur]: {
-                    ...((parsed.queries[subCur as keyof Breakpoints] as {}) ??
-                      {}),
+                    ...((parsed.queries[
+                      subCur as keyof Config['breakpoints']
+                    ] as {}) ?? {}),
                   },
                 },
               };
@@ -238,7 +282,10 @@ export const parseStyleValues = <T>(
         value.map((subValue) => {
           const parsed = parseStyleValues(
             subValue,
-            breakpoints
+            breakpoints,
+            vars,
+            mounted,
+            isDark
           ) as ParsedStyleValues<T>;
 
           return deepMerge(acc, {
@@ -252,11 +299,22 @@ export const parseStyleValues = <T>(
         const subValue = value[breakpoint as keyof typeof value];
 
         if (breakpoint in breakpoints) {
+          const is0 =
+            breakpoints[breakpoint as keyof Config['breakpoints']] === 0;
+
+          if (is0) {
+            acc.initial = { ...acc.initial, [cur]: fixColorValue(subValue) };
+
+            continue;
+          }
+
           acc.queries = {
             ...acc.queries,
             [breakpoint]: {
-              ...((acc.queries[breakpoint as keyof Breakpoints] as {}) ?? {}),
-              [cur]: subValue,
+              ...((acc.queries[
+                breakpoint as keyof Config['breakpoints']
+              ] as {}) ?? {}),
+              [cur]: fixColorValue(subValue),
             },
           };
         }

@@ -14,35 +14,43 @@ You'll need to wrap your app with `StyleProvider`. If you are using typescript, 
 need to use module augmentation to add your properties to the theme and breakpoint object.
 
 ```tsx
-import { StyleProvider } from 'rn-responsive-stylesheet';
+import { useColorScheme } from 'react-native';
 
-const theme = {
-  colors: {
-    primary: "#F9F",
-    secondary: "#FF9",
+import { StyleProvider, createConfig } from 'rn-responsive-stylesheet';
+
+const config = createConfig({
+  colorVars: {
+    secondary: {
+      light: '#FF9',
+      dark: '#AA9',
+    },
   },
-} as const
+  breakpoints: {
+    xs: 0,
+    sm: 300,
+    md: 500,
+    lg: 800,
+    xl: 1200,
+  },
+  theme: {
+    colors: {
+      primary: '#F9F',
+      secondary: 'var(--secondary)',
+    },
+  },
+});
 
-type ThemeType = typeof theme
+type ConfigType = typeof config;
 
-const breakpoints = {
-  xs: 0,
-  sm: 300,
-  md: 500,
-  lg: 800,
-  xl: 1200,
-} as const
-
-type BreakpointsType = typeof breakpoints
-
-declare module "rn-responsive-stylesheet" {
-  export interface Theme extends ThemeType {}
-  export interface Breakpoints extends BreakpointsType {}
+declare module 'rn-responsive-stylesheet' {
+  export interface Config extends ConfigType {}
 }
 
 const App = () => {
+  const colorScheme = useColorScheme();
+
   return (
-     <StyleProvider theme={theme} breakpoints={breakpoints}>
+    <StyleProvider config={config} colorScheme={colorScheme ?? 'light'}>
       {children}
     </StyleProvider>
   );
@@ -103,6 +111,7 @@ const useStyles = const useStyles = createStyleSheet(() => ({
 ### Advanced example
 
 ```jsx
+import * as React from 'react';
 import { View, Text, useColorScheme } from 'react-native';
 
 import { useBreakpointStyles } from 'rn-responsive-stylesheet';
@@ -110,11 +119,11 @@ import { useBreakpointStyles } from 'rn-responsive-stylesheet';
 export const MyComponent = () => {
   const styles = useStyles()
 
-  const isDark = useColorScheme() === "dark"
+  const [active, setActive] = React.useState(false);
 
   return (
     <>
-      <View style={styles.container(isDark)}>
+      <View style={styles.container}>
         <View style={styles.box}>
           <Text>Hello</Text>
         </View>
@@ -124,22 +133,22 @@ export const MyComponent = () => {
 };
 
 const useStyles = const useStyles = createStyleSheet((theme, { vw, vh }) => ({
-  container: (isDark: boolean) => ({
+  container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: {
+      xs: "center",
+      md: "flex-start",
+    },
     backgroundColor: isDark ? "#000" : "#FFF"
-  }),
-  box: {
+  },
+  box: (active: boolean) => ({
     alignItems: "center",
     justifyContent: "center",
     width: vw(20),
     height: vh(20),
-    backgroundColor: {
-      xs: theme.colors.secondary,
-      md: theme.colors.primary,
-    },
-  },
+    backgroundColor: active ? theme.colors.primary : theme.colors.secondary,
+  }),
 }))
 ```
 
@@ -170,7 +179,7 @@ const RootProvider = ({ children }: RootProviderProps) => {
 
 ### Server Rendering
 
-When rendering on the server, the component's styles are replaced with CSS custom properties. Media queries are generated for the breakpoints and output the CSS for the custom properties.
+When rendering on the server, the component's styles are replaced with CSS custom properties. Media queries are generated for the breakpoints and for the color vars and output the CSS for the custom properties.
 
 ### Web Rendering
 

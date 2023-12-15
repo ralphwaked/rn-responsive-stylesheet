@@ -1,6 +1,9 @@
-import { Dimensions, PixelRatio, Platform } from 'react-native';
+import { PixelRatio, Platform } from 'react-native';
 
-export const units = (mounted: boolean) => {
+export const units = (
+  mounted: boolean,
+  { width, height }: { width: number; height: number }
+) => {
   const useLiteral = Platform.OS === 'web' && !mounted;
 
   const em = useLiteral
@@ -13,12 +16,11 @@ export const units = (mounted: boolean) => {
 
   const vw = useLiteral
     ? (value: number): number => `${value}vw` as unknown as number
-    : (value: number): number => (value * Dimensions.get('window').width) / 100;
+    : (value: number): number => (value * width) / 100;
 
   const vh = useLiteral
     ? (value: number): number => `${value}vh` as unknown as number
-    : (value: number): number =>
-        (value * Dimensions.get('window').height) / 100;
+    : (value: number): number => (value * height) / 100;
 
   const min = useLiteral
     ? (...values: number[]): number =>

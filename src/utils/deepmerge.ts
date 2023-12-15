@@ -1,3 +1,5 @@
+// FROM https://github.com/voodoocreation/ts-deepmerge#
+
 type TAllKeys<T> = T extends any ? keyof T : never;
 
 type TIndexValue<T, K extends PropertyKey, D = never> = T extends any
@@ -22,12 +24,15 @@ type TPrimitives =
   | Date
   | TFunction;
 
-type TMerged<T> = [T] extends [Array<any>]
-  ? { [K in keyof T]: TMerged<T[K]> }
+export type DeepMerged<T> = [T] extends [Array<any>]
+  ? { [K in keyof T]: DeepMerged<T[K]> }
   : [T] extends [TPrimitives]
     ? T
     : [T] extends [object]
-      ? TPartialKeys<{ [K in TAllKeys<T>]: TMerged<TIndexValue<T, K>> }, never>
+      ? TPartialKeys<
+          { [K in TAllKeys<T>]: DeepMerged<TIndexValue<T, K>> },
+          never
+        >
       : T;
 
 // istanbul ignore next
@@ -50,7 +55,7 @@ interface IObject {
 
 export const deepMerge = <T extends IObject[]>(
   ...objects: T
-): TMerged<T[number]> =>
+): DeepMerged<T[number]> =>
   objects.reduce((result, current) => {
     if (Array.isArray(current)) {
       throw new TypeError(

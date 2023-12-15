@@ -18,7 +18,7 @@ import type {
   TranslateXTransform,
   TranslateYTransform,
 } from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
-import type { Breakpoints, Theme } from './config';
+import type { Config } from './core/config';
 
 export interface StyledUtils {
   em: (value: number) => number;
@@ -63,7 +63,7 @@ export type ToResponsive<T> = {
   [K in keyof T]?:
     | T[K]
     | {
-        [key in keyof Breakpoints]?: T[K];
+        [key in keyof Config['breakpoints']]?: T[K];
       };
 };
 
@@ -84,7 +84,7 @@ export type StyleValues = {
   [propName in AllStyleKeys]?:
     | AllStyles[propName]
     | {
-        [key in keyof Breakpoints]?: AllStyles[propName];
+        [key in keyof Config['breakpoints']]?: AllStyles[propName];
       };
 } & {
   [nestedPropName in NestedKeys]?: NestedStyles[nestedPropName];
@@ -103,7 +103,7 @@ export type StyleSheet = {
 };
 
 export type ExtendedStyleSheet =
-  | ((theme: Theme, utils: StyledUtils) => StyleSheet)
+  | ((theme: Config['theme'], utils: StyledUtils) => StyleSheet)
   | StyleSheet;
 
 type ParseNestedObject<T> = T extends (...args: infer A) => any
@@ -115,7 +115,7 @@ type ParseStyleKeys<T> = T extends object
   : never;
 
 export type ReactNativeStyleSheet<T> = T extends (
-  theme: Theme,
+  theme: Config['theme'],
   utils: StyledUtils
 ) => infer R
   ? ParseStyleKeys<R>
