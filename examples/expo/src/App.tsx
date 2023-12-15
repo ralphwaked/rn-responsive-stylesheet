@@ -5,8 +5,9 @@ import {
   StyleProvider,
   createStyleSheet,
   createConfig,
-  useTheme,
+  getStyleElement,
 } from 'rn-responsive-stylesheet';
+import { Box } from './box';
 
 export default function App() {
   const colorScheme = useColorScheme();
@@ -20,14 +21,13 @@ export default function App() {
 
 export function Component() {
   const styles = useStyles();
-  const theme = useTheme();
 
   const [active, setActive] = React.useState(false);
 
   return (
-    <View style={styles.container}>
+    <Box centered style={styles.container}>
       <View style={styles.box}>
-        <Text>Works: {theme.colors.tets}</Text>
+        <Text>{getStyleElement().props.dangerouslySetInnerHTML.__html}</Text>
       </View>
       <Pressable
         style={styles.button({ active })}
@@ -36,7 +36,7 @@ export function Component() {
       >
         <Text>active: {active.toString()}</Text>
       </Pressable>
-    </View>
+    </Box>
   );
 }
 

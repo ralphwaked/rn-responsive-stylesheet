@@ -24,7 +24,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
   return () => {
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
-      setMounted(true);
+      setMounted(false);
     }, []);
 
     const { isDark, theme, breakpoints, colorVars } = useConfig();
@@ -155,7 +155,7 @@ const getServerResponsiveStyle = (
     }
   }
 
-  return [{ $$css: true, responsiveStyles: cssClass } as any];
+  return [{ $$css: true, [cssClass as string]: cssClass } as any];
 };
 
 const getResponsiveStyle = (
