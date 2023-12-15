@@ -3,6 +3,7 @@ import { createContext, createElement, useContext, useMemo } from 'react';
 import { DEFAULT_THEME, type ThemeType, type ColorValue } from './theme';
 import type { DeepMergeTwoTypes } from './merge';
 import { insert, textContentMap } from '../inject-web-styles';
+import { Platform } from 'react-native';
 
 type CreateConfig<
   V extends Record<
@@ -47,7 +48,7 @@ export const StyleProvider = ({
   children?: React.ReactNode;
 }) => {
   const context = useMemo(() => {
-    if (Object.keys(config.colorVars).length > 0) {
+    if (Object.keys(config.colorVars).length > 0 && Platform.OS === 'web') {
       let rootVars = ':root { ';
       let darkVars = '.dark { ';
 
