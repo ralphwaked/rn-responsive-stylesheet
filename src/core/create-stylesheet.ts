@@ -105,6 +105,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
 const getServerResponsiveStyle = (
   parsed: ParsedStyleValues<StyleValues>,
   cssClass: string | undefined,
+  // @ts-ignore
   breakpoints: Config['breakpoints']
 ) => {
   const classSelector = `.${cssClass}`;
@@ -138,9 +139,11 @@ const getServerResponsiveStyle = (
     const rule = `${classSelector}{${cssString}}`;
 
     const cssRuleWithMediaQuery = breakpoints[
+      // @ts-ignore
       query as keyof Config['breakpoints']
     ]
       ? `@media only screen and (min-width: ${
+          // @ts-ignore
           breakpoints[query as keyof Config['breakpoints']]
         }px) { ${rule} }`
       : undefined;
@@ -156,6 +159,7 @@ const getServerResponsiveStyle = (
 
 const getResponsiveStyle = (
   parsed: ParsedStyleValues<StyleValues>,
+  // @ts-ignore
   breakpoints: Config['breakpoints'],
   width: number
 ) => {
@@ -164,12 +168,15 @@ const getResponsiveStyle = (
     Object.keys(parsed.queries)
       .sort(
         (a, b) =>
+          // @ts-ignore
           breakpoints[a as keyof Config['breakpoints']] -
+          // @ts-ignore
           breakpoints[b as keyof Config['breakpoints']]
       )
       .reduce((subAcc, subCur) => {
         const subValue = parsed.queries[subCur as keyof typeof parsed.queries];
 
+        // @ts-ignore
         if (breakpoints[subCur as keyof Config['breakpoints']] <= width) {
           return deepMerge(subAcc, subValue ?? {});
         }
@@ -195,6 +202,7 @@ type ParsedStyleValues<T> = {
   initial: T;
 } & {
   queries: {
+    // @ts-ignore
     [Breakpoint in keyof Config['breakpoints']]?: T;
   };
 };
@@ -207,7 +215,9 @@ const extractValueFromVar = (value: string) => {
 
 export const parseStyleValues = <T>(
   style: T,
+  // @ts-ignore
   breakpoints: Config['breakpoints'],
+  // @ts-ignore
   vars: Config['colorVars'],
   mounted: boolean,
   isDark?: boolean
@@ -217,6 +227,7 @@ export const parseStyleValues = <T>(
       if (mounted) {
         const val = extractValueFromVar(value);
 
+        // @ts-ignore
         const colorVar = vars[val as keyof Config['colorVars']];
 
         if (typeof colorVar === 'object') {
@@ -267,6 +278,7 @@ export const parseStyleValues = <T>(
                   ...((subAcc[subCur as keyof typeof subAcc] as {}) ?? {}),
                   [cur]: {
                     ...((parsed.queries[
+                      // @ts-ignore
                       subCur as keyof Config['breakpoints']
                     ] as {}) ?? {}),
                   },
@@ -300,6 +312,7 @@ export const parseStyleValues = <T>(
 
         if (breakpoint in breakpoints) {
           const is0 =
+            // @ts-ignore
             breakpoints[breakpoint as keyof Config['breakpoints']] === 0;
 
           if (is0) {
@@ -312,6 +325,7 @@ export const parseStyleValues = <T>(
             ...acc.queries,
             [breakpoint]: {
               ...((acc.queries[
+                // @ts-ignore
                 breakpoint as keyof Config['breakpoints']
               ] as {}) ?? {}),
               [cur]: fixColorValue(subValue),

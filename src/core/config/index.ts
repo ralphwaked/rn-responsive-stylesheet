@@ -22,7 +22,9 @@ export interface Config {}
 export const ConfigContext = createContext<{
   isDark: boolean;
   colorVars: CreateConfig<any, any, any>['colorVars'];
+  // @ts-ignore
   theme: Config['theme'];
+  // @ts-ignore
   breakpoints: Config['breakpoints'];
 }>(null!);
 
@@ -30,6 +32,7 @@ export const useConfig = () => {
   return useContext(ConfigContext);
 };
 
+// @ts-ignore
 export const useTheme = (): Config['theme'] => {
   return useContext(ConfigContext).theme;
 };

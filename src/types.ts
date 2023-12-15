@@ -63,6 +63,7 @@ export type ToResponsive<T> = {
   [K in keyof T]?:
     | T[K]
     | {
+        // @ts-ignore
         [key in keyof Config['breakpoints']]?: T[K];
       };
 };
@@ -84,6 +85,7 @@ export type StyleValues = {
   [propName in AllStyleKeys]?:
     | AllStyles[propName]
     | {
+        // @ts-ignore
         [key in keyof Config['breakpoints']]?: AllStyles[propName];
       };
 } & {
@@ -103,8 +105,8 @@ export type StyleSheet = {
 };
 
 export type ExtendedStyleSheet =
-  | ((theme: Config['theme'], utils: StyledUtils) => StyleSheet)
-  | StyleSheet;
+  // @ts-ignore
+  ((theme: Config['theme'], utils: StyledUtils) => StyleSheet) | StyleSheet;
 
 type ParseNestedObject<T> = T extends (...args: infer A) => any
   ? (...args: A) => NativeStyle
@@ -115,6 +117,7 @@ type ParseStyleKeys<T> = T extends object
   : never;
 
 export type ReactNativeStyleSheet<T> = T extends (
+  // @ts-ignore
   theme: Config['theme'],
   utils: StyledUtils
 ) => infer R
