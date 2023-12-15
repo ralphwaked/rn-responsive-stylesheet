@@ -24,7 +24,7 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
   return () => {
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
-      setMounted(false);
+      setMounted(true);
     }, []);
 
     const { isDark, theme, breakpoints, colorVars } = useConfig();
