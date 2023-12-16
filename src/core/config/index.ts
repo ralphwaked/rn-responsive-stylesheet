@@ -99,7 +99,7 @@ export const createConfig = <
   breakpoints: B;
   theme: T;
 }): CreateConfig<V, B, T> => {
-  for (const key of Object.keys(config.theme)) {
+  for (const key of Object.keys(DEFAULT_THEME)) {
     config.theme[key as keyof ThemeType] = {
       ...DEFAULT_THEME[key as keyof typeof DEFAULT_THEME],
       ...config.theme[key as keyof ThemeType],
