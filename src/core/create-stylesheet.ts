@@ -49,10 +49,6 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
         const key = cur[0];
         const value = cur[1] as StyleSheet[number];
 
-        const cssClass = parsedStyles
-          ? `responsive-${generateHash(JSON.stringify({ parsedStyles, key }))}`
-          : undefined;
-
         if (typeof value === 'function') {
           return deepMerge(acc, {
             [key]: new Proxy(value, {
@@ -64,6 +60,16 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
                   mounted,
                   isDark
                 );
+
+                const cssClass = parsedStyles
+                  ? `responsive-${generateHash(
+                      JSON.stringify({
+                        parsed,
+                        value,
+                        key,
+                      })
+                    )}`
+                  : undefined;
 
                 if (Platform.OS !== 'web' || mounted) {
                   return getResponsiveStyle(
@@ -89,6 +95,16 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
             mounted,
             isDark
           );
+
+          const cssClass = parsedStyles
+            ? `responsive-${generateHash(
+                JSON.stringify({
+                  parsed,
+                  value,
+                  key,
+                })
+              )}`
+            : undefined;
 
           if (Platform.OS !== 'web' || mounted) {
             return deepMerge(acc, {

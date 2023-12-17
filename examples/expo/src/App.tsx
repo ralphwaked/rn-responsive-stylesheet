@@ -36,6 +36,13 @@ export function Component() {
       >
         <Text>active: {active.toString()}</Text>
       </Pressable>
+      <Pressable
+        style={styles.button({ active })}
+        onPressIn={() => setActive(true)}
+        onPressOut={() => setActive(false)}
+      >
+        <Text>active: {active.toString()}</Text>
+      </Pressable>
     </Box>
   );
 }
