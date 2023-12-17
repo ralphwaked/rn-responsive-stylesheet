@@ -100,8 +100,17 @@ export type StyleValuesWithQuery = {
   }[];
 };
 
+export type StyleList<T> =
+  | T
+  | undefined
+  | null
+  | false
+  | ReadonlyArray<StyleList<T>>;
+
 export type StyleSheet = {
-  [styleName: string]: StyleValues | ((...args: any) => StyleValues);
+  [styleName: string]:
+    | StyleList<StyleValues>
+    | ((...args: any) => StyleList<StyleValues>);
 };
 
 export type ExtendedStyleSheet =

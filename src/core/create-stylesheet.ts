@@ -9,6 +9,7 @@ import { useConfig, type Config } from './config';
 import type {
   ExtendedStyleSheet,
   ReactNativeStyleSheet,
+  StyleList,
   StyleSheet,
   StyleValues,
 } from '../types';
@@ -65,10 +66,14 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
                 );
 
                 if (Platform.OS !== 'web' || mounted) {
-                  return getResponsiveStyle(parsed, breakpoints, width);
+                  return getResponsiveStyle(
+                    parsed as ParsedStyleValues<StyleValues>,
+                    breakpoints,
+                    width
+                  );
                 } else {
                   return getServerResponsiveStyle(
-                    parsed,
+                    parsed as ParsedStyleValues<StyleValues>,
                     cssClass,
                     breakpoints
                   );
@@ -87,11 +92,19 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
 
           if (Platform.OS !== 'web' || mounted) {
             return deepMerge(acc, {
-              [key]: getResponsiveStyle(parsed, breakpoints, width),
+              [key]: getResponsiveStyle(
+                parsed as ParsedStyleValues<StyleValues>,
+                breakpoints,
+                width
+              ),
             }) as unknown as ReactNativeStyleSheet<S>;
           } else {
             return deepMerge(acc, {
-              [key]: getServerResponsiveStyle(parsed, cssClass, breakpoints),
+              [key]: getServerResponsiveStyle(
+                parsed as ParsedStyleValues<StyleValues>,
+                cssClass,
+                breakpoints
+              ),
             }) as unknown as ReactNativeStyleSheet<S>;
           }
         }
@@ -100,6 +113,22 @@ export const createStyleSheet = <S extends ExtendedStyleSheet>(
 
     return styles;
   };
+};
+
+const isReadonlyArray = (array: unknown): array is ReadonlyArray<unknown> =>
+  Array.isArray(array);
+
+export const processStyleList = <Style>(
+  styleList: StyleList<Style>
+): Partial<Style> => {
+  if (isReadonlyArray(styleList)) {
+    return styleList.reduce(
+      (acc, x) => ({ ...acc, ...processStyleList(x) }),
+      {}
+    );
+  }
+
+  return styleList ? styleList : {};
 };
 
 const getServerResponsiveStyle = (
@@ -215,6 +244,14 @@ const extractValueFromVar = (value: string) => {
   return match ? match[1] : null;
 };
 
+type ExtractType<T> = T extends StyleList<infer A>
+  ? A extends false | infer C | null | undefined
+    ? C
+    : A
+  : T extends false | infer C | null | undefined
+    ? C
+    : T;
+
 export const parseStyleValues = <T extends StyleSheet[number]>(
   style: T,
   // @ts-ignore
@@ -223,7 +260,7 @@ export const parseStyleValues = <T extends StyleSheet[number]>(
   vars: Config['colorVars'],
   mounted: boolean,
   isDark?: boolean
-): ParsedStyleValues<T> => {
+): ParsedStyleValues<ExtractType<T>> => {
   const fixColorValue = (value: any) => {
     if (typeof value === 'string' && value.startsWith('var(--')) {
       if (mounted) {
@@ -245,9 +282,11 @@ export const parseStyleValues = <T extends StyleSheet[number]>(
     return value;
   };
 
-  return Object.keys(style ?? {}).reduce<ParsedStyleValues<T>>(
+  const _style = processStyleList<T>(style);
+
+  return Object.keys(_style ?? {}).reduce<ParsedStyleValues<ExtractType<T>>>(
     (acc, cur) => {
-      const value = style[cur as keyof typeof style];
+      const value = _style[cur as keyof typeof _style];
 
       if (!value) {
         return acc;
@@ -291,7 +330,7 @@ export const parseStyleValues = <T extends StyleSheet[number]>(
             },
             {} as ParsedStyleValues<T>['queries']
           ),
-        }) as ParsedStyleValues<T>;
+        }) as ParsedStyleValues<ExtractType<T>>;
       }
 
       if (cur === 'transform' && Array.isArray(value)) {
@@ -340,6 +379,6 @@ export const parseStyleValues = <T extends StyleSheet[number]>(
 
       return acc;
     },
-    { initial: {}, queries: {} } as ParsedStyleValues<T>
+    { initial: {}, queries: {} } as ParsedStyleValues<ExtractType<T>>
   );
 };

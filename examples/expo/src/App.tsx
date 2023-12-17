@@ -41,37 +41,46 @@ export function Component() {
 }
 
 const useStyles = createStyleSheet((theme, { vw, vh }) => ({
-  container: {
-    flex: 1,
-    width: vw(100),
-    height: vh(100),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  box: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: vw(50),
-    height: 200,
-    shadowOffset: {
-      height: {
-        xs: 200,
-        md: 400,
+  container: [
+    {
+      flex: 1,
+      width: vw(100),
+      height: vh(100),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  ],
+  box: [
+    {
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: vw(50),
+      height: 200,
+      shadowOffset: {
+        height: {
+          xs: 200,
+          md: 400,
+        },
+        width: 200,
       },
+      backgroundColor: {
+        xs: theme.colors.primary0,
+        md: theme.colors.primary,
+      },
+    },
+  ],
+  button: ({ active }: { active: boolean }) => [
+    {
+      alignItems: 'center',
+      justifyContent: 'center',
       width: 200,
+      height: 150,
+      backgroundColor: theme.colors.tets,
     },
-    backgroundColor: {
-      xs: theme.colors.primary0,
-      md: theme.colors.primary,
+    active && {
+      backgroundColor: theme.colors.primary,
     },
-  },
-  button: ({ active }: { active: boolean }) => ({
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 200,
-    height: 150,
-    backgroundColor: active ? theme.colors.primary : theme.colors.tets,
-  }),
+  ],
 }));
 
 const config = createConfig({
